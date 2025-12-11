@@ -169,7 +169,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     return 'Por favor, insira uma nova senha';
                   }
                   if (value.length < 6) {
-                    return 'A senha deve ter pelo menos 6 caracteres';
+                    return 'Senha deve ter no mínimo 6 caracteres';
+                  }
+                  // Validação: letra maiúscula, minúscula e número
+                  if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$')
+                      .hasMatch(value)) {
+                    return 'Senha deve ter maiúscula, minúscula e número';
                   }
                   return null;
                 },

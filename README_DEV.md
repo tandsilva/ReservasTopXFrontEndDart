@@ -1,6 +1,6 @@
 # Reservas Top - Frontend Flutter
 
-## 🎯 O que foi implementado
+## 🎯 COMPLETO - Sistema de Reservas Implementado!
 
 ### ✅ Cadastro de Usuário (User Create)
 
@@ -69,7 +69,7 @@ Se for testar em celular físico, você precisa:
 ### Fluxo 2: Login
 1. **Tela Inicial** → Link "Já tem conta? Faça login"
 2. **Tela de Login** → Insere username e password
-3. **Sucesso** → Autentica usuário (token salvo)
+3. **Sucesso** → Navega para **Home Screen**
 
 ### Fluxo 3: Recuperação de Senha
 1. **Tela de Login** → Link "Esqueceu a senha?"
@@ -78,20 +78,42 @@ Se for testar em celular físico, você precisa:
 4. **Reset Password** → Insere token + nova senha
 5. **Sucesso** → Volta para tela inicial
 
+### Fluxo 4: Visualizar Restaurantes ⭐ NOVO
+1. **Home Screen** → Aba "Restaurantes"
+2. **Lista de Restaurantes** → Mostra todos disponíveis
+3. **Clica em um restaurante** → Vê detalhes completos
+
+### Fluxo 5: Fazer Reserva ⭐ NOVO
+1. **Detalhes do Restaurante** → Seleciona data e hora
+2. **Confirma Reserva** → Sistema cria reserva
+3. **Sucesso** → Reserva criada com status PENDING
+
+### Fluxo 6: Minhas Reservas ⭐ NOVO
+1. **Home Screen** → Aba "Minhas Reservas"
+2. **Lista de Reservas** → Mostra todas as reservas do usuário
+3. **Status**: Pendente, Confirmada, Cancelada, Concluída
+4. **Pode cancelar** → Se status for PENDING ou CONFIRMED
+
 ## 🔧 Estrutura do Projeto
 
 ```
 lib/
-├── main.dart                          # Ponto de entrada, tela inicial
+├── main.dart                              # Ponto de entrada, tela inicial
 ├── models/
-│   └── user_model.dart                # Modelo de dados User
+│   ├── user_model.dart                    # Modelo User
+│   ├── restaurant_model.dart              # Modelo Restaurant ⭐ NOVO
+│   └── reservation_model.dart             # Modelo Reservation ⭐ NOVO
 ├── services/
-│   └── api_service.dart               # Comunicação com backend (todos os endpoints)
+│   └── api_service.dart                   # Todos os endpoints da API
 └── screens/
-    ├── register_screen.dart           # Tela de cadastro
-    ├── login_screen.dart              # Tela de login
-    ├── forgot_password_screen.dart    # Tela "esqueci a senha"
-    └── reset_password_screen.dart     # Tela redefinir senha com token
+    ├── register_screen.dart               # Cadastro
+    ├── login_screen.dart                  # Login
+    ├── forgot_password_screen.dart        # Recuperar senha
+    ├── reset_password_screen.dart         # Redefinir senha
+    ├── home_screen.dart                   # Dashboard principal ⭐ NOVO
+    ├── restaurants_list_screen.dart       # Lista restaurantes ⭐ NOVO
+    ├── restaurant_detail_screen.dart      # Detalhes + fazer reserva ⭐ NOVO
+    └── my_reservations_screen.dart        # Minhas reservas ⭐ NOVO
 ```
 
 ## 📝 Próximos Passos

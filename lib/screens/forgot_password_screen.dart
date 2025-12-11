@@ -47,35 +47,79 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         token = result['data']['token'];
       }
 
-      // Mostrar dialog com o token para copiar (já que email não funciona)
+      // Mostrar mensagem de sucesso
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Token de Recuperação'),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 28),
+              SizedBox(width: 8),
+              Text('Email Enviado'),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '⚠️ Email não configurado no servidor.',
-                style: TextStyle(
-                    color: Colors.orange, fontWeight: FontWeight.bold),
+              Text(
+                'Um email foi enviado para:',
+                style: TextStyle(fontSize: 14),
               ),
-              const SizedBox(height: 10),
-              const Text('Copie o token abaixo:'),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
                 ),
-                child: SelectableText(
-                  token ?? 'Token não disponível',
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                  ),
+                child: Row(
+                  children: [
+                    Icon(Icons.email, color: Colors.blue[700], size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _emailController.text.trim(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[900],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '📧 Verifique sua caixa de entrada',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Copie o código (token) que foi enviado por email e use na próxima tela.',
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        color: Colors.orange[800], size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Se não receber, verifique a pasta de spam',
+                        style:
+                            TextStyle(fontSize: 11, color: Colors.orange[900]),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

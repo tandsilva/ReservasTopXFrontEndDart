@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'forgot_password_screen.dart';
+import 'user_home_screen.dart';
+import 'admin_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,19 +47,36 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: Colors.green,
+      // Extrair informações do resultado
+      final String token = result['token'] ?? '';
+      final String username =
+          result['data']?['username'] ?? _usernameController.text;
+      final List<dynamic> roles = result['data']?['roles'] ?? [];
+
+      // Verificar se é ADMIN ou USER
+      final bool isAdmin =
+          roles.any((role) => role.toString().toUpperCase().contains('ADMIN'));
+
+      // TODO: Buscar userId do backend ou do token
+      final int? userId = 1; // FIXME: Pegar do backend
+
+      // Navegar para tela correta baseado na role
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => isAdmin
+              ? AdminHomeScreen(
+                  username: username,
+                  token: token,
+                  userId: userId,
+                )
+              : UserHomeScreen(
+                  username: username,
+                  token: token,
+                  userId: userId,
+                ),
         ),
       );
-
-      // TODO: Salvar token e navegar para tela principal
-      // SharedPreferences prefs = await SharedPreferences.getInstance();
-      // await prefs.setString('token', result['token']);
-
-      // Por enquanto, só mostra sucesso e volta
-      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
