@@ -28,13 +28,16 @@ class Reservation {
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
     return Reservation(
-      id: json['id'],
-      userId: json['userId'],
-      restaurantId: json['restaurantId'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
+      userId: json['userId'] is int
+          ? json['userId']
+          : (json['userId'] as num).toInt(),
+      restaurantId: json['restaurantId'] is int
+          ? json['restaurantId']
+          : (json['restaurantId'] as num).toInt(),
       reservationDate: DateTime.parse(json['reservationDate']),
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       status: json['status'] ?? 'PENDING',
     );
   }

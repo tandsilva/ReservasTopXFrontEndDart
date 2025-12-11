@@ -53,12 +53,14 @@ class _LoginScreenState extends State<LoginScreen> {
           result['data']?['username'] ?? _usernameController.text;
       final List<dynamic> roles = result['data']?['roles'] ?? [];
 
+      // ✅ Pegar userId do backend
+      final int? userId = result['data']?['userId'];
+
+      print('🔵 Login - userId recebido do backend: $userId'); // Debug
+
       // Verificar se é ADMIN ou USER
       final bool isAdmin =
           roles.any((role) => role.toString().toUpperCase().contains('ADMIN'));
-
-      // TODO: Buscar userId do backend ou do token
-      final int? userId = 1; // FIXME: Pegar do backend
 
       // Navegar para tela correta baseado na role
       Navigator.pushReplacement(

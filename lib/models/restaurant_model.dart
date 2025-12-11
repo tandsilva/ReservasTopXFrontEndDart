@@ -40,7 +40,7 @@ class Restaurant {
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
     return Restaurant(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
       nomeFantasia: json['nomeFantasia'] ?? '',
       razaoSocial: json['razaoSocial'] ?? '',
       cnpj: json['cnpj'] ?? '',
@@ -48,10 +48,11 @@ class Restaurant {
       telefone: json['telefone'] ?? '',
       endereco: json['endereco'] ?? '',
       categoria: json['categoria'] ?? '',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : null,
-      userId: json['userId'],
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      userId: json['userId'] is int
+          ? json['userId']
+          : (json['userId'] as num?)?.toInt(),
     );
   }
 }

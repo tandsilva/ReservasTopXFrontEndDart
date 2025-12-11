@@ -22,20 +22,25 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
   }
 
   Future<void> _loadReservations() async {
+    if (!mounted) return; // Verifica se ainda está montado
     setState(() => _isLoading = true);
     try {
       final result = await ApiService.getAllReservations();
+      if (!mounted) return; // Verifica novamente antes de setState
+
       if (result['success'] == true && result['data'] != null) {
-        final List<dynamic> data = result['data'] as List<dynamic>;
+        // O ApiService já retorna List<Reservation>, não precisa converter!
+        final List<Reservation> reservations =
+            result['data'] as List<Reservation>;
         setState(() {
-          _reservations =
-              data.map((json) => Reservation.fromJson(json)).toList();
+          _reservations = reservations;
           _isLoading = false;
         });
       } else {
         setState(() => _isLoading = false);
       }
     } catch (e) {
+      if (!mounted) return; // Verifica antes de setState
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

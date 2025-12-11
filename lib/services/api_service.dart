@@ -64,6 +64,10 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('📥 Resposta do login completa: $data'); // Debug
+        print('📥 userId na resposta: ${data['userId']}'); // Debug
+        print('📥 Tipo do userId: ${data['userId'].runtimeType}'); // Debug
+
         return {
           'success': true,
           'message': 'Login realizado com sucesso!',
@@ -202,7 +206,10 @@ class ApiService {
       Restaurant restaurant) async {
     try {
       final jsonBody = restaurant.toJson();
-      print('🏪 Criando restaurante: $jsonBody'); // Debug
+      print('🏪 Criando restaurante:');
+      print('   JSON completo: $jsonBody'); // Debug
+      print('   userId no JSON: ${jsonBody['userId']}'); // Debug
+      print('   Tipo do userId: ${jsonBody['userId'].runtimeType}'); // Debug
 
       final response = await http.post(
         Uri.parse('$baseUrl/restaurants/create'),
@@ -210,8 +217,8 @@ class ApiService {
         body: jsonEncode(jsonBody),
       );
 
-      print('Status Code: ${response.statusCode}'); // Debug
-      print('Response: ${response.body}'); // Debug
+      print('📡 Status Code: ${response.statusCode}'); // Debug
+      print('📡 Response completo: ${response.body}'); // Debug
 
       if (response.statusCode == 200) {
         return {

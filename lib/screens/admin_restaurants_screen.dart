@@ -24,17 +24,27 @@ class _AdminRestaurantsScreenState extends State<AdminRestaurantsScreen> {
   Future<void> _loadRestaurants() async {
     setState(() => _isLoading = true);
     try {
+      print('🔄 Carregando restaurantes...'); // Debug
       final result = await ApiService.getAllRestaurants();
+      print('📦 Resultado: $result'); // Debug
+
       if (result['success'] == true && result['data'] != null) {
-        final List<dynamic> data = result['data'] as List<dynamic>;
+        // O ApiService já retorna List<Restaurant>, não precisa converter!
+        final List<Restaurant> restaurants = result['data'] as List<Restaurant>;
+        print('📋 Total de restaurantes: ${restaurants.length}'); // Debug
+
         setState(() {
-          _restaurants = data.map((json) => Restaurant.fromJson(json)).toList();
+          _restaurants = restaurants;
           _isLoading = false;
         });
+        print('✅ ${_restaurants.length} restaurantes carregados'); // Debug
       } else {
+        print('⚠️ Nenhum restaurante encontrado'); // Debug
         setState(() => _isLoading = false);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Erro ao carregar restaurantes: $e'); // Debug
+      print('📚 Stack trace: $stackTrace'); // Debug
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -148,6 +158,8 @@ class _AdminRestaurantsScreenState extends State<AdminRestaurantsScreen> {
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState!.validate()) {
+                print('🔵 userId recebido: ${widget.userId}'); // Debug
+
                 try {
                   final restaurant = Restaurant(
                     nomeFantasia: nomeFantasiaController.text,
@@ -159,18 +171,36 @@ class _AdminRestaurantsScreenState extends State<AdminRestaurantsScreen> {
                     categoria: categoriaController.text,
                     userId: widget.userId,
                   );
-                  await ApiService.createRestaurant(restaurant);
+
+                  print(
+                      '🔵 Restaurant criado: ${restaurant.toJson()}'); // Debug
+
+                  final result = await ApiService.createRestaurant(restaurant);
+
+                  print('🔵 Resultado da API: $result'); // Debug
+
                   if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Restaurante criado com sucesso!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    _loadRestaurants();
+                    if (result['success'] == true) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Restaurante criado com sucesso!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      _loadRestaurants();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Erro: ${result['message'] ?? 'Erro desconhecido'}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }
                 } catch (e) {
+                  print('❌ Exceção ao criar restaurante: $e'); // Debug
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
