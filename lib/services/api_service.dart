@@ -6,8 +6,9 @@ import '../models/reservation_model.dart';
 import 'package:intl/intl.dart';
 
 class ApiService {
-  // Altere para o IP da sua máquina se estiver testando em dispositivo físico
-  static const String baseUrl = 'http://localhost:8080';
+  // URL do backend no Railway
+  static const String baseUrl =
+      'https://reservastopx-production.up.railway.app';
 
   // Criar usuário
   static Future<Map<String, dynamic>> createUser(User user) async {
