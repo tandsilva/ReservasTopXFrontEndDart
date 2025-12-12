@@ -1,51 +1,43 @@
 
 # ===== Stage 1: Build Flutter Web =====
 FROM ghcr.io/cirruslabs/flutter:stable AS build
-
-# (Opcional) evitar warning de root:
-# RUN adduser -D flutteruser
-# USER flutteruser
-
 WORKDIR /app
 
-# Habilita Web no SDK do Flutter
+# Habilita Web
 RUN flutter config --enable-web
 
-# Cache eficiente: copia apenas pubspec e resolve deps
+# Cache de deps
 COPY pubspec.* ./
 RUN flutter pub get
 
-# Copia o restante do projeto
+# Código
 COPY . .
 
-# Se não existir a pasta web/, cria (resolve "project not configured for web")
+# Cria suporte web se faltar a pasta
 RUN test -d web || flutter create . --platforms web
 
-# Recebe a URL da API como ARG/ENV e injeta no build
+# Injeta a URL da API (se necessário) via ARG/ENV
 ARG API_BASE_URL
 ENV API_BASE_URL=${API_BASE_URL}
 RUN flutter build web --release \
     --dart-define=API_BASE_URL=${API_BASE_URL}
 
-# ===== Stage 2: Nginx como servidor estático (SPA) =====
+# ===== Stage 2: Nginx (SPA + porta dinâmica) =====
 FROM nginx:alpine
 
-# Dependência para envsubst
+# envsubst
 RUN apk add --no-cache bash gettext
 
-# Copia os arquivos gerados do build
+# Build
 COPY --from=build /app/build/web /usr/share/nginx/html
 
-# Template do nginx que usa ${PORT}
+# Template e entrypoint
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
-
-# EntryPoint que substitui ${PORT} e sobe o nginx
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Exponha 8080 (Railway pode mapear a PORT de runtime)
+# Expose (aid debugging; PORT é dinâmico)
 EXPOSE 8080
 
-# Usa o entrypoint pra renderizar a conf com a PORT
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
