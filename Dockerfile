@@ -1,4 +1,3 @@
-
 # ===== Stage 1: Build Flutter Web =====
 FROM ghcr.io/cirruslabs/flutter:stable AS build
 WORKDIR /app
@@ -6,17 +5,17 @@ WORKDIR /app
 # Habilita Web
 RUN flutter config --enable-web
 
-# Cache de deps
+# Cria um projeto vazio para garantir que web/ exista
+RUN flutter create . --platforms web
+
+# Agora sim: copiar pubspec e baixar deps
 COPY pubspec.* ./
 RUN flutter pub get
 
-# Código
+# Copiar o restante do código
 COPY . .
 
-# Cria suporte web se faltar a pasta
-RUN test -d web || flutter create . --platforms web
-
-# Injeta a URL da API (se necessário) via ARG/ENV
+# Build
 ARG API_BASE_URL
 ENV API_BASE_URL=${API_BASE_URL}
 RUN flutter build web --release \
@@ -24,19 +23,13 @@ RUN flutter build web --release \
 
 # ===== Stage 2: Nginx (SPA + porta dinâmica) =====
 FROM nginx:alpine
-
-# envsubst
 RUN apk add --no-cache bash gettext
 
-# Build
 COPY --from=build /app/build/web /usr/share/nginx/html
-
-# Template e entrypoint
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose (aid debugging; PORT é dinâmico)
 EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint.sh"]
