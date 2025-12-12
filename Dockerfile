@@ -2,40 +2,50 @@
 # ===== Stage 1: Build Flutter Web =====
 FROM ghcr.io/cirruslabs/flutter:stable AS build
 
-# Evita rodar no root só se quiser tirar o warning (opcional):
+# (Opcional) evitar warning de root:
 # RUN adduser -D flutteruser
 # USER flutteruser
 
 WORKDIR /app
 
-# 1) Copiar apenas pubspec para aproveitar cache do pub get
-COPY pubspec.* ./
+# Habilita Web no SDK do Flutter
 RUN flutter config --enable-web
+
+# Cache eficiente: copia apenas pubspec e resolve deps
+COPY pubspec.* ./
 RUN flutter pub get
 
-# 2) Agora copie o restante do app
+# Copia o restante do projeto
 COPY . .
 
-# 3) Se o projeto ainda não tiver a pasta web/, cria automaticamente
-#    (isso resolve o erro "This project is not configured for the web")
+# Se não existir a pasta web/, cria (resolve "project not configured for web")
 RUN test -d web || flutter create . --platforms web
 
-# 4) Build web (adicione dart-define se precisa passar URL do backend)
-# Exemplo: --dart-define=API_BASE_URL=https://seuservice.up.railway.app
-RUN flutter build web --release
+# Recebe a URL da API como ARG/ENV e injeta no build
+ARG API_BASE_URL
+ENV API_BASE_URL=${API_BASE_URL}
+RUN flutter build web --release \
+    --dart-define=API_BASE_URL=${API_BASE_URL}
 
-# ===== Stage 2: Serve with Nginx =====
+# ===== Stage 2: Nginx como servidor estático (SPA) =====
 FROM nginx:alpine
 
-# Copia o build gerado
+# Dependência para envsubst
+RUN apk add --no-cache bash gettext
+
+# Copia os arquivos gerados do build
 COPY --from=build /app/build/web /usr/share/nginx/html
 
-# Copia a config do Nginx (SPA + gzip)
-COPY nginx.conf /etc/nginx/nginx.conf
+# Template do nginx que usa ${PORT}
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 
-# Em Railway, a plataforma injeta a variável PORT: mapeamos para Nginx.
-# Você pode manter EXPOSE 8080, mas é comum usar 80. Se quiser usar a PORT:
-# Vamos manter 8080, mas ver nota abaixo.
+# EntryPoint que substitui ${PORT} e sobe o nginx
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Exponha 8080 (Railway pode mapear a PORT de runtime)
 EXPOSE 8080
 
+# Usa o entrypoint pra renderizar a conf com a PORT
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
