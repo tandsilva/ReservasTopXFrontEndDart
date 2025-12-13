@@ -1,0 +1,16 @@
+Revert "Finalizado App"
+
+This reverts commit 502aba382c669d54a9592e46da63af6c9c42b1d9.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# No ramo main
+# Your branch is up to date with 'origin/main'.
+#
+# Revert currently in progress.
+#
+# Mudanças a serem submetidas:
+#	new file:   Dockerfile
+#	new file:   entrypoint.sh
+#
