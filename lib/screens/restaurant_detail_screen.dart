@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/restaurant_model.dart';
 import '../services/api_service.dart';
+import '../services/ai_service.dart';
 import 'package:intl/intl.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
@@ -21,6 +22,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 19, minute: 0);
   bool _isLoading = false;
+  Map<String, dynamic>? _availabilityData;
+  bool _isLoadingAvailability = false;
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
@@ -32,8 +35,44 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        _availabilityData = null; // Resetar quando mudar a data
       });
+      _loadAvailabilityPrediction();
     }
+  }
+
+  Future<void> _loadAvailabilityPrediction() async {
+    if (widget.restaurant.id == null) return;
+
+    setState(() {
+      _isLoadingAvailability = true;
+    });
+
+    final reservationDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      19, // Hora padrão para análise
+      0,
+    );
+
+    final result = await AIService.predictAvailability(
+      widget.restaurant.id!,
+      reservationDateTime,
+    );
+
+    setState(() {
+      _isLoadingAvailability = false;
+      if (result['success']) {
+        _availabilityData = result['data'];
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvailabilityPrediction();
   }
 
   Future<void> _selectTime() async {
@@ -214,6 +253,80 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                       trailing: const Icon(Icons.edit),
                       onTap: _selectTime,
                     ),
+
+                    // Sugestões inteligentes de horários (IA)
+                    if (_isLoadingAvailability)
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (_availabilityData != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.auto_awesome,
+                                    color: Colors.blue, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Sugestões Inteligentes de Horários',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            if (_availabilityData!['timeSlots'] != null)
+                              ...((_availabilityData!['timeSlots'] as List)
+                                  .take(3)
+                                  .map((slot) {
+                                final hour = slot['hour'] as String;
+                                final score =
+                                    slot['availabilityScore'] as double;
+                                final recommendation =
+                                    slot['recommendation'] as String;
+                                final color = score > 0.7
+                                    ? Colors.green
+                                    : score > 0.4
+                                        ? Colors.orange
+                                        : Colors.red;
+
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$hour - $recommendation',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList()),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 16),
 

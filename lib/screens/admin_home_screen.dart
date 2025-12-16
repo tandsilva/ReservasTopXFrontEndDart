@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'admin_restaurants_screen.dart';
 import 'admin_reservations_screen.dart';
 import 'admin_promotions_screen.dart';
+import 'ai_insights_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   final String username;
@@ -53,6 +54,18 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
         backgroundColor: Colors.deepOrange,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.insights),
+            tooltip: 'Dashboard de Insights IA',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AIInsightsScreen(),
+                ),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(

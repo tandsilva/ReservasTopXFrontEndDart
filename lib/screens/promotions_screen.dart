@@ -18,6 +18,7 @@ class PromotionsScreen extends StatelessWidget {
         'validUntil': '31/12/2025',
         'icon': Icons.local_offer,
         'color': Colors.green,
+        'imageUrl': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
       },
       {
         'title': 'Sobremesa Grátis',
@@ -28,6 +29,7 @@ class PromotionsScreen extends StatelessWidget {
         'validUntil': '15/12/2025',
         'icon': Icons.cake,
         'color': Colors.purple,
+        'imageUrl': 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
       },
       {
         'title': '2 por 1 em Drinks',
@@ -37,6 +39,7 @@ class PromotionsScreen extends StatelessWidget {
         'validUntil': '30/12/2025',
         'icon': Icons.local_bar,
         'color': Colors.blue,
+        'imageUrl': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800',
       },
       {
         'title': 'Rodízio Especial',
@@ -46,6 +49,7 @@ class PromotionsScreen extends StatelessWidget {
         'validUntil': '20/12/2025',
         'icon': Icons.restaurant,
         'color': Colors.red,
+        'imageUrl': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
       },
     ];
 
@@ -85,15 +89,94 @@ class PromotionsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header com ícone e desconto
+                        // Imagem da promoção
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                          child: Stack(
+                            children: [
+                              promo['imageUrl'] != null
+                                  ? Image.network(
+                                      promo['imageUrl'],
+                                      height: 200,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          height: 200,
+                                          color: promo['color'].withOpacity(0.3),
+                                          child: Icon(
+                                            promo['icon'],
+                                            size: 60,
+                                            color: promo['color'],
+                                          ),
+                                        );
+                                      },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
+                                          height: 200,
+                                          color: promo['color'].withOpacity(0.1),
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress.expectedTotalBytes != null
+                                                  ? loadingProgress.cumulativeBytesLoaded /
+                                                      loadingProgress.expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      height: 200,
+                                      color: promo['color'].withOpacity(0.3),
+                                      child: Icon(
+                                        promo['icon'],
+                                        size: 60,
+                                        color: promo['color'],
+                                      ),
+                                    ),
+                              // Badge de desconto sobre a imagem
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: promo['color'],
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    promo['discount'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Header com informações
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: promo['color'].withOpacity(0.1),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12),
-                            ),
                           ),
                           child: Row(
                             children: [
@@ -130,24 +213,6 @@ class PromotionsScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: promo['color'],
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  promo['discount'],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
                                 ),
                               ),
                             ],
@@ -204,35 +269,61 @@ class PromotionsScreen extends StatelessWidget {
             Expanded(child: Text(promo['title'])),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              promo['restaurant'],
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagem da promoção se houver
+              if (promo['imageUrl'] != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    promo['imageUrl'],
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 200,
+                        color: promo['color'].withOpacity(0.3),
+                        child: Icon(
+                          promo['icon'],
+                          size: 60,
+                          color: promo['color'],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Text(
+                promo['restaurant'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(promo['description']),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 8),
+              Text(promo['description']),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Válido até ${promo['validUntil']}'),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Válido até ${promo['validUntil']}'),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

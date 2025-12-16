@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'restaurants_list_screen.dart';
 import 'my_reservations_screen.dart';
 import 'promotions_screen.dart';
+import 'ai_chatbot_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final String username;
@@ -47,6 +48,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         title: const Text('Reservas Top'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.smart_toy),
+            tooltip: 'Assistente Virtual IA',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AIChatbotScreen(userId: widget.userId),
+                ),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Center(

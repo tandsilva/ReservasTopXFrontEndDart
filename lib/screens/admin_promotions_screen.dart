@@ -9,7 +9,7 @@ class AdminPromotionsScreen extends StatefulWidget {
 
 class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
   // Lista de promoções mockada (depois conectar com backend quando o endpoint existir)
-  List<Map<String, dynamic>> _promotions = [
+  final List<Map<String, dynamic>> _promotions = [
     {
       'id': 1,
       'title': '20% OFF na primeira reserva!',
@@ -18,6 +18,8 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
       'description': 'Válido para novos clientes',
       'discount': '20%',
       'validUntil': '31/12/2025',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
       'active': true,
     },
     {
@@ -28,6 +30,8 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
       'description': 'Em reservas acima de R\$ 100',
       'discount': 'Grátis',
       'validUntil': '15/12/2025',
+      'imageUrl':
+          'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
       'active': true,
     },
   ];
@@ -38,6 +42,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
     final descriptionController = TextEditingController();
     final discountController = TextEditingController();
     final validUntilController = TextEditingController();
+    final imageUrlController = TextEditingController();
 
     showDialog(
       context: context,
@@ -91,6 +96,17 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
                       value?.isEmpty ?? true ? 'Campo obrigatório' : null,
                 ),
                 const SizedBox(height: 12),
+                TextFormField(
+                  controller: imageUrlController,
+                  decoration: const InputDecoration(
+                    labelText: 'URL da Imagem (opcional)',
+                    hintText: 'https://exemplo.com/imagem.jpg',
+                    prefixIcon: Icon(Icons.image),
+                    helperText: 'Cole a URL de uma imagem para a promoção',
+                  ),
+                  keyboardType: TextInputType.url,
+                ),
+                const SizedBox(height: 12),
                 const Text(
                   '* Nota: Será necessário selecionar o restaurante quando houver integração com o backend',
                   style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
@@ -116,6 +132,9 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
                     'description': descriptionController.text,
                     'discount': discountController.text,
                     'validUntil': validUntilController.text,
+                    'imageUrl': imageUrlController.text.isNotEmpty
+                        ? imageUrlController.text
+                        : null,
                     'active': true,
                   });
                 });
@@ -198,6 +217,30 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Imagem da promoção se houver
+              if (promotion['imageUrl'] != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    promotion['imageUrl'],
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 150,
+                        color: Colors.grey.shade300,
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               _buildInfoRow(
                   'Restaurante', promotion['restaurant'], Icons.restaurant),
               const Divider(),
@@ -209,6 +252,11 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
               const Divider(),
               _buildInfoRow(
                   'Válido até', promotion['validUntil'], Icons.calendar_today),
+              if (promotion['imageUrl'] != null) ...[
+                const Divider(),
+                _buildInfoRow(
+                    'URL da Imagem', promotion['imageUrl'], Icons.image),
+              ],
               const Divider(),
               _buildInfoRow(
                 'Status',
@@ -301,94 +349,138 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
                   child: InkWell(
                     onTap: () => _showPromotionDetails(promo, index),
                     borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: promo['active']
-                                      ? Colors.green[100]
-                                      : Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  Icons.local_offer,
-                                  color: promo['active']
-                                      ? Colors.green
-                                      : Colors.grey,
-                                  size: 32,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      promo['title'],
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      promo['restaurant'],
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Switch(
-                                value: promo['active'],
-                                onChanged: (value) => _togglePromotion(index),
-                                activeColor: Colors.blue,
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[100],
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  promo['discount'],
-                                  style: const TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.bold,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Imagem da promoção
+                        if (promo['imageUrl'] != null)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                            child: Image.network(
+                              promo['imageUrl'],
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 150,
+                                  color: Colors.grey.shade300,
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
                                   ),
-                                ),
+                                );
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  height: 150,
+                                  color: Colors.grey.shade200,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        // Informações da promoção
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: promo['active']
+                                          ? Colors.green[100]
+                                          : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.local_offer,
+                                      color: promo['active']
+                                          ? Colors.green
+                                          : Colors.grey,
+                                      size: 32,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          promo['title'],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          promo['restaurant'],
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: promo['active'],
+                                    onChanged: (value) =>
+                                        _togglePromotion(index),
+                                    activeColor: Colors.blue,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Icon(Icons.calendar_today,
-                                  size: 16, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Até ${promo['validUntil']}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
+                              const Divider(height: 24),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[100],
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      promo['discount'],
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Icon(Icons.calendar_today,
+                                      size: 16, color: Colors.grey[600]),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Até ${promo['validUntil']}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 );

@@ -132,7 +132,7 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.schedule, color: Colors.blue),
+              leading: const Icon(Icons.schedule, color: Colors.blue),
               title: const Text('Pendente'),
               onTap: () {
                 Navigator.pop(context);
@@ -142,7 +142,7 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.check_circle, color: Colors.green),
+              leading: const Icon(Icons.check_circle, color: Colors.green),
               title: const Text('Confirmada'),
               onTap: () {
                 Navigator.pop(context);
@@ -152,7 +152,7 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.done_all, color: Colors.blue),
+              leading: const Icon(Icons.done_all, color: Colors.blue),
               title: const Text('Concluída'),
               onTap: () {
                 Navigator.pop(context);
@@ -162,7 +162,7 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.cancel, color: Colors.red),
+              leading: const Icon(Icons.cancel, color: Colors.red),
               title: const Text('Cancelada'),
               onTap: () {
                 Navigator.pop(context);
@@ -177,11 +177,132 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
     );
   }
 
+  Map<String, dynamic> get _aiStatistics {
+    final total = _reservations.length;
+    final confirmed =
+        _reservations.where((r) => r.status == 'CONFIRMED').length;
+    final pending = _reservations.where((r) => r.status == 'PENDING').length;
+    final completed =
+        _reservations.where((r) => r.status == 'COMPLETED').length;
+    final canceled = _reservations.where((r) => r.status == 'CANCELED').length;
+
+    final confirmationRate = total > 0 ? (confirmed / total * 100) : 0.0;
+    final completionRate = total > 0 ? (completed / total * 100) : 0.0;
+
+    // Análise de padrões por horário
+    final hourCounts = <int, int>{};
+    for (var res in _reservations) {
+      final hour = res.reservationDate.hour;
+      hourCounts[hour] = (hourCounts[hour] ?? 0) + 1;
+    }
+    final peakHour = hourCounts.entries.isEmpty
+        ? null
+        : hourCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+
+    return {
+      'total': total,
+      'confirmed': confirmed,
+      'pending': pending,
+      'completed': completed,
+      'canceled': canceled,
+      'confirmationRate': confirmationRate,
+      'completionRate': completionRate,
+      'peakHour': peakHour,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final stats = _aiStatistics;
+
     return Scaffold(
       body: Column(
         children: [
+          // Dashboard de Estatísticas com IA
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.deepOrange.shade400,
+                  Colors.deepOrange.shade600
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.auto_awesome, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      'Dashboard de Estatísticas IA',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Total',
+                        stats['total'].toString(),
+                        Icons.event_note,
+                        Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Confirmadas',
+                        stats['confirmed'].toString(),
+                        Icons.check_circle,
+                        Colors.green.shade100,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Pendentes',
+                        stats['pending'].toString(),
+                        Icons.schedule,
+                        Colors.blue.shade100,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (stats['peakHour'] != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.insights, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Horário de pico: ${stats['peakHour']}:00h | Taxa de confirmação: ${stats['confirmationRate'].toStringAsFixed(1)}%',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
           // Filtros
           Container(
             padding: const EdgeInsets.all(16),
@@ -330,6 +451,43 @@ class _AdminReservationsScreenState extends State<AdminReservationsScreen> {
                           },
                         ),
                       ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+      String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Icon(icon,
+              color: color == Colors.white
+                  ? Colors.deepOrange
+                  : Colors.deepOrange),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color == Colors.white ? Colors.deepOrange : Colors.black87,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: color == Colors.white
+                  ? Colors.deepOrange.shade700
+                  : Colors.grey[700],
+            ),
           ),
         ],
       ),
